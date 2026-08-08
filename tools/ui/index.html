@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assetto Corsa EVO — data explorer</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<header>
+  <h1>AC EVO <span>data explorer</span></h1>
+  <input id="search" type="search" placeholder="Search for a file (min. 2 characters)…" autocomplete="off">
+  <span id="status" class="status"></span>
+</header>
+
+<main>
+  <aside id="sidebar">
+    <div class="navbar">
+      <button id="btn-up" class="icon" title="Parent folder">↑</button>
+      <button id="btn-drives" class="icon" title="Drives">💾</button>
+      <input id="pathbar" type="text" spellcheck="false"
+             placeholder="Paste a path, then Enter…" autocomplete="off">
+      <button id="btn-star" class="icon" title="Bookmark this folder">☆</button>
+    </div>
+    <div id="places" class="places"></div>
+    <div id="crumbs" class="crumbs"></div>
+    <ul id="listing" class="listing"></ul>
+  </aside>
+
+  <section id="editor">
+    <div id="welcome" class="welcome">
+      <h2>Open a file</h2>
+      <p>Browse the tree on the left, or use the search box.</p>
+      <p class="muted">Supported formats: protobuf (<code>.carledsystem</code>,
+      <code>.carengine</code>, <code>.curve</code>, <code>.aisplinedata</code>…),
+      splinedata (<code>.extended_splinedata.bin</code>) and text files.</p>
+    </div>
+
+    <div id="pane" hidden>
+      <div class="filehead">
+        <div>
+          <h2 id="fname"></h2>
+          <div id="fmeta" class="meta"></div>
+        </div>
+        <div class="actions">
+          <button id="btn-reload" class="ghost">Reload</button>
+          <button id="btn-save" class="primary" disabled>Save</button>
+        </div>
+      </div>
+
+      <nav class="tabs">
+        <button data-tab="form" class="on">Structured view</button>
+        <button data-tab="raw">Raw JSON</button>
+        <div class="findbar">
+          <input id="find" type="search" placeholder="Find in this file…  (Ctrl+F)"
+                 autocomplete="off" spellcheck="false">
+          <button id="find-prev" class="icon" title="Previous match" disabled>↑</button>
+          <button id="find-next" class="icon" title="Next match" disabled>↓</button>
+          <span id="findinfo" class="findinfo"></span>
+        </div>
+      </nav>
+
+      <div id="tab-form" class="tab"></div>
+      <div id="tab-raw" class="tab" hidden>
+        <textarea id="rawjson" spellcheck="false"></textarea>
+        <div class="rawbar">
+          <button id="btn-apply" class="ghost">Apply to form</button>
+          <span id="rawerr" class="err"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
