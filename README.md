@@ -2,7 +2,7 @@
 
 Read and edit Assetto Corsa EVO content files.
 
-The game's data files are **not encrypted** — they are serialised Protocol
+The game's data files are serialised Protocol
 Buffers messages. Better still, the complete `.proto` schemas are embedded in
 the game executable, so fields can be shown by their real names rather than by
 number.
@@ -11,7 +11,7 @@ number.
 main_lights[0].shared_lights[1]
   category         = Flashing
   light_function   = light_highbeam
-  intensity_when_on = 20.0
+  intensity_when_on = 1.0
   blinker_name     = "ON_200ms_200ms"
 ```
 
