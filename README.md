@@ -35,8 +35,13 @@ game executable, so you generate them once from your own copy of the game.
 python tools/extract_protos.py "<path to>/AssettoCorsaEVO.exe" -o proto -d proto/acevo.desc
 ```
 
+Or on Windows, double-click `tools/extract_protos.bat` and type the path to
+your AC EVO install folder (or the `.exe` itself) when asked — or drag that
+folder/file onto the `.bat`.
+
 This writes `proto/acevo.desc` (used by the tools) and 90 readable `.proto`
-files (useful as a reference). Repeat it after a game update.
+files (useful as a reference) at the repo root, in `proto/`. Repeat it after a
+game update.
 
 Without it everything still works and stays byte-exact, but fields show as
 numbers instead of names.
@@ -52,6 +57,8 @@ cannot be guessed. Or double-click `tools/acevo_ui.bat` on Windows.
 
 Point it at your extracted game content with `--dir`, or just paste any path
 into the address bar once it is open.
+
+![AC EVO data explorer](docs/screenshot.png)
 
 ## The interface
 
