@@ -23,7 +23,14 @@ import threading
 import webbrowser
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+# When frozen by PyInstaller, __file__-based resolution doesn't reliably
+# point at the bundle's data files (onefile extracts to a temp dir, and
+# frozen-imported modules' __file__ isn't a real on-disk path) - sys._MEIPASS
+# is the one path PyInstaller guarantees, in both onedir and onefile builds.
+if getattr(sys, "frozen", False):
+    ROOT = Path(sys._MEIPASS)  # type: ignore[attr-defined]
+else:
+    ROOT = Path(__file__).resolve().parent
 
 # url prefix -> module folder. The prefix is used both for its API routes
 # (registered by each module's own routes.py) and for its frontend, served
@@ -45,16 +52,28 @@ sys.path.insert(0, str(ROOT / "UI"))
 for folder in MODULES.values():
     sys.path.insert(0, str(folder))
 
-import server as ui_server      # noqa: E402  (UI/server.py)
-import settings_store           # noqa: E402  (UI/settings_store.py - generic KV store, shared infra)
-
-
-def _load_routes_module(name: str, folder: Path):
-    spec = importlib.util.spec_from_file_location(name, folder / "routes.py")
+def _load_module(name: str, path: Path):
+    # Loaded from a real on-disk file path rather than a normal `import`, so
+    # this keeps working the same way whether run from source or bundled by
+    # PyInstaller as a data file (data files, unlike frozen-compiled modules,
+    # are always real files under ROOT - see the sys._MEIPASS note above).
+    spec = importlib.util.spec_from_file_location(name, path)
     mod = importlib.util.module_from_spec(spec)
     sys.modules[name] = mod
     spec.loader.exec_module(mod)
     return mod
+
+
+def _load_routes_module(name: str, folder: Path):
+    return _load_module(name, folder / "routes.py")
+
+
+ui_server = _load_module("server", ROOT / "UI" / "server.py")  # "server", not "ui_server":
+# tab routes.py files do `from server import RawResponse` (plain flat import, same convention
+# as their other sibling imports) - registering under that same sys.modules key means they get
+# THIS module back instead of triggering a second, independent load of UI/server.py, which would
+# otherwise create a second, distinct RawResponse class that fails isinstance() checks here.
+settings_store = _load_module("settings_store", ROOT / "UI" / "settings_store.py")
 
 
 def main():
@@ -112,6 +131,7 @@ def main():
     print("interface    : %s" % url)
     print("(the address contains a session token: do not share it)")
     print("Ctrl+C to stop.")
+    sys.stdout.flush()  # stdout is fully-buffered (not a tty) when frozen/redirected
     if not a.no_browser:
         threading.Timer(0.6, lambda: webbrowser.open(url)).start()
     try:
