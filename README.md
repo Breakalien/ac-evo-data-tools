@@ -8,6 +8,8 @@ Tutorials will come step by step here: [YouTube channel](https://www.youtube.com
 Updates will be here: [Patreon](https://www.patreon.com/cw/alien_one)
 Everything is free, no membership needed.
 
+![ACE AIO - AC EVO data explorer](docs/screenshot-overview.png)
+
 The game's data files are serialised Protocol Buffers messages. Better still,
 the complete `.proto` schemas are embedded in the game executable, so fields
 can be shown by their real names rather than by number.
