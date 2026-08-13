@@ -1,1 +1,5 @@
 protobuf>=4.21
+
+# >=9.2 for its DDS reader's BC6H/BC7 + DX10 header support, used by the
+# material editor's texture previews (see "material editor/texture_preview.py").
+Pillow>=9.2

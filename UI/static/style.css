@@ -1,0 +1,153 @@
+/* Shared design tokens + app shell chrome (top-level tab bar). Each tool
+   module ships its own app.css on top of this for anything module-specific
+   - keep this file limited to things every tab should look consistent in. */
+
+:root {
+  --bg: #14161a;
+  --panel: #1b1e24;
+  --panel2: #22262e;
+  --line: #2e333d;
+  --fg: #e6e9ef;
+  --muted: #9aa3b2;
+  --accent: #4fa3ff;
+  --ok: #4ec9a0;
+  --warn: #e0a33e;
+  --err: #ff6b6b;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.5 "Segoe UI", system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 8px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+.app-header h1 { font-size: 15px; margin: 0; font-weight: 600; white-space: nowrap; }
+.app-header h1 span { color: var(--muted); font-weight: 400; }
+
+.app-tabs { display: flex; gap: 4px; }
+.app-tabs button {
+  font: inherit;
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 9px 14px 7px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.app-tabs button:hover { color: var(--fg); }
+.app-tabs button.on { color: var(--fg); border-bottom-color: var(--accent); }
+
+.app-main { flex: 1; display: flex; min-height: 0; }
+.app-tab-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+
+/* -- shared drag-to-resize splitter (UI/static/resizable.js) ------------- */
+.ace-splitter {
+  flex: none;
+  width: 6px;
+  margin: 0 -3px;
+  cursor: col-resize;
+  background: transparent;
+  position: relative;
+  z-index: 5;
+}
+.ace-splitter::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+}
+.ace-splitter:hover::before, .ace-splitter.dragging::before { background: var(--accent); }
+
+/* -- shared file browser (UI/static/filebrowser.js) ---------------------- */
+.fb-sidebar {
+  width: 320px;
+  flex: none;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.fb-search {
+  margin: 8px 8px 0; padding: 6px 10px; border-radius: 6px; flex: none;
+  border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; font-size: 12.5px;
+}
+.fb-search:focus { outline: none; border-color: var(--accent); }
+.fb-navbar { display: flex; gap: 5px; padding: 8px; border-bottom: 1px solid var(--line); align-items: center; flex: none; }
+.fb-pathbar {
+  flex: 1; min-width: 0; padding: 5px 8px; border-radius: 5px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+  font-family: Consolas, monospace; font-size: 11.5px;
+}
+.fb-pathbar:focus { outline: none; border-color: var(--accent); }
+button.fb-icon {
+  font: inherit; padding: 5px 8px; line-height: 1; flex: none; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--panel2); color: var(--fg); cursor: pointer;
+}
+button.fb-icon:hover { border-color: var(--accent); }
+button.fb-icon.on { color: var(--warn); }
+
+.fb-places { padding: 6px 8px; border-bottom: 1px solid var(--line); flex: none; }
+.fb-places .grp { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 4px 0 3px; }
+.fb-places .chip {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 100%;
+  margin: 0 4px 4px 0; padding: 3px 8px; border-radius: 12px;
+  background: var(--panel2); border: 1px solid var(--line); font-size: 11.5px; cursor: pointer;
+}
+.fb-places .chip:hover { border-color: var(--accent); }
+.fb-places .chip span.t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px; }
+.fb-places .chip b { color: var(--muted); font-weight: 400; cursor: pointer; padding: 0 1px; }
+.fb-places .chip b:hover { color: var(--err); }
+
+.fb-crumbs { padding: 8px 12px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); word-break: break-all; flex: none; }
+.fb-crumbs a { color: var(--accent); text-decoration: none; cursor: pointer; }
+.fb-crumbs a:hover { text-decoration: underline; }
+
+.fb-listing { list-style: none; margin: 0; padding: 4px 0; overflow: auto; flex: 1; }
+.fb-listing li { padding: 5px 12px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; border-left: 2px solid transparent; }
+.fb-listing li:hover { background: var(--panel2); }
+.fb-listing li.sel { background: var(--panel2); border-left-color: var(--accent); }
+.fb-listing li.dim { color: #5c6472; cursor: pointer; }
+.fb-listing .ic { width: 14px; flex: none; color: var(--muted); }
+.fb-listing .nm { flex: 1; word-break: break-all; }
+.fb-listing .sz { color: var(--muted); font-size: 11px; flex: none; }
+
+.fb-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  display: flex; align-items: center; justify-content: center; z-index: 50;
+}
+.fb-modal {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  width: 640px; max-width: 92vw; height: 520px; max-height: 85vh;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.fb-modal-head { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); flex: none; }
+.fb-modal-head strong { flex: 1; }
+.fb-modal-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.fb-modal-foot { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--line); flex: none; }
+.fb-modal-name { flex: 1; padding: 6px 9px; border-radius: 5px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; }
+.fb-modal button.primary { font: inherit; padding: 6px 13px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: #06121f; font-weight: 600; cursor: pointer; }
+
+/* native <select>/<option> popups don't always inherit page CSS on Windows -
+   style options explicitly so they're never white-on-white or the reverse. */
+select, option {
+  color-scheme: dark;
+}
+:root[data-theme="light"] select, :root[data-theme="light"] option { color-scheme: light; }

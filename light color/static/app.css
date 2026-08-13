@@ -1,0 +1,64 @@
+.lc-page { padding: 24px 32px; overflow: auto; height: 100%; }
+.lc-page h2 { margin-top: 0; }
+.lc-page .muted { color: var(--muted); font-size: 12.5px; }
+.lc-page code { background: var(--panel2); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+.lc-toolbar { display: flex; align-items: center; gap: 10px; margin: 16px 0; max-width: 900px; }
+.lc-toolbar input[type=text] {
+  flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--fg); font: inherit; font-size: 12.5px;
+}
+.lc-toolbar button, .lc-footer button {
+  font: inherit; padding: 6px 13px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--panel2); color: var(--fg); cursor: pointer;
+}
+.lc-toolbar button:hover, .lc-footer button:hover { border-color: var(--accent); }
+.lc-toolbar button:disabled, .lc-footer button:disabled { opacity: .5; cursor: default; }
+.lc-toolbar button.primary, .lc-footer button.primary {
+  background: var(--accent); border-color: var(--accent); color: #06121f; font-weight: 600;
+}
+
+.lc-status { color: var(--muted); font-size: 12.5px; }
+.lc-status.ok { color: var(--ok); }
+.lc-status.err { color: var(--err); }
+.lc-status.warn { color: var(--warn); }
+
+/* -- two columns, side by side, full width -------------------------------- */
+.lc-columns { display: flex; gap: 40px; align-items: flex-start; }
+.lc-col { flex: 1; min-width: 0; }
+.lc-col-head { margin-bottom: 14px; }
+.lc-col-head h3 {
+  font-size: 13px; margin: 0 0 4px; color: var(--fg); text-transform: uppercase; letter-spacing: .05em;
+}
+.lc-col-head .muted, .lc-col-head .lc-files-list {
+  font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+}
+
+/* materials: the 4 groups (Front/Back/Indicator/Special) as a 2x2 grid
+   instead of stacking, so the column stays short. */
+.lc-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 4px 24px; }
+.lc-group h3 { font-size: 12px; margin: 0 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+.lc-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+.lc-field-name { flex: 1; font-size: 12px; }
+.lc-color { width: 36px; height: 26px; flex: none; border-radius: 4px; border: 1px solid var(--line); padding: 0; cursor: pointer; background: none; }
+
+.lc-footer { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+
+.lc-log {
+  margin-top: 10px; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--fg); font-family: Consolas, monospace; font-size: 12px;
+  white-space: pre-wrap; word-break: break-all; max-height: 240px; overflow: auto;
+}
+
+.lc-files-list { font-size: 12px; color: var(--muted); }
+.lc-files-list summary { cursor: pointer; }
+.lc-files-list ul { margin: 6px 0 0; padding-left: 18px; max-height: 160px; overflow: auto; }
+
+/* emitters: responsive grid, several per row instead of one long list */
+.lc-emitters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 4px 20px; }
+.lc-emitter-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+.lc-emitter-name { flex: 1; font-size: 12px; }
+.lc-emitter-row.touched .lc-emitter-name { color: var(--accent); font-weight: 600; }
+.lc-emitter-touched-badge { color: var(--accent); font-size: 10.5px; flex: none; }
+.lc-emitter-reset { font-size: 11px; padding: 3px 8px !important; flex: none; }

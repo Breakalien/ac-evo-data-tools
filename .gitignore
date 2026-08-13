@@ -2,8 +2,16 @@ __pycache__/
 *.pyc
 *.bak
 
-# Generated locally from your own copy of the game — not redistributed.
-proto/*.desc
-proto/*.proto
-proto/gamemodes/
-proto/google/
+# Generated locally from your own copy of the game - not redistributed.
+data editor/proto/*.desc
+data editor/proto/*.proto
+data editor/proto/gamemodes/
+data editor/proto/google/
+
+# Machine-specific (AC EVO install path etc.) - not shared.
+settings.json
+
+# PyInstaller build output.
+build/
+dist/
+*.spec

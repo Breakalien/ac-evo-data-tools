@@ -1,11 +1,12 @@
-# AC EVO Data Tools
+# ACE AIO — AC EVO Data Tools
 
-Read and edit Assetto Corsa EVO content files.
+Read and edit Assetto Corsa EVO content files, all from one browser-based app:
+a data explorer, a material editor and a light-color batch editor, sharing a
+single interface.
 
-The game's data files are serialised Protocol
-Buffers messages. Better still, the complete `.proto` schemas are embedded in
-the game executable, so fields can be shown by their real names rather than by
-number.
+The game's data files are serialised Protocol Buffers messages. Better still,
+the complete `.proto` schemas are embedded in the game executable, so fields
+can be shown by their real names rather than by number.
 
 ```
 main_lights[0].shared_lights[1]
@@ -20,47 +21,61 @@ identical to the original.
 
 ## Requirements
 
-Python 3.9+ and the protobuf runtime:
+Only needed if you run it from source - see [Quick start](#quick-start) for
+the no-install option.
+
+Python 3.9+ and:
 
 ```bash
-pip install protobuf
+pip install -r requirements.txt
 ```
+
+(`protobuf` for decoding game files, `Pillow` for texture previews in the
+Material Editor.)
 
 ## First run
 
 The schemas are **not shipped** with these tools: they are extracted from the
 game executable, so you generate them once from your own copy of the game.
+This used to be a separate command-line script - it now lives in the app
+itself, under the **Settings** tab:
 
-```bash
-python tools/extract_protos.py "<path to>/AssettoCorsaEVO.exe" -o proto -d proto/acevo.desc
-```
+![Settings - extract protobuf schemas](docs/screenshot-settings.png)
 
-Or on Windows, double-click `tools/extract_protos.bat` and type the path to
-your AC EVO install folder (or the `.exe` itself) when asked — or drag that
-folder/file onto the `.bat`.
-
-This writes `proto/acevo.desc` (used by the tools) and 90 readable `.proto`
-files (useful as a reference) at the repo root, in `proto/`. Repeat it after a
-game update.
+Point it at your Assetto Corsa EVO install folder and click **Extract protos**.
+This writes `data editor/proto/acevo.desc` (used by the tools) and 90 readable
+`.proto` files (useful as a reference). Repeat it after a game update.
 
 Without it everything still works and stays byte-exact, but fields show as
 numbers instead of names.
 
 ## Quick start
 
+> **Status: alpha.** Expect rough edges. Back up your content folder before
+> editing regardless (see [Backups](#backups)).
+
+**Don't want to install Python?** Grab the latest standalone Windows build
+from the [Releases page](https://github.com/Breakalien/ac-evo-data-tools/releases) -
+download the zip, extract it anywhere, and run `ACE AIO.exe`. No install, no
+Python required.
+
+**Running from source:**
+
 ```bash
-python tools/acevo_ui.py
+python main.py
 ```
 
 Open the address printed in the console — it carries a session token, so it
-cannot be guessed. Or double-click `tools/acevo_ui.bat` on Windows.
+cannot be guessed. Or double-click `run.bat` on Windows.
 
 Point it at your extracted game content with `--dir`, or just paste any path
-into the address bar once it is open.
-
-![AC EVO data explorer](docs/screenshot.png)
+into the address bar of the file browser once it is open.
 
 ## The interface
+
+Four tabs, sharing the same window - one browser tab is all you need.
+
+### Data Editor
 
 - **Explorer** — browse any folder, bookmarks and recent list, search by
   filename scoped to the current folder.
@@ -76,34 +91,38 @@ reserves, meaning they were deleted from the schema. Older content files still
 carry values for them; the game ignores them. They stay editable and are
 rewritten exactly.
 
-## Command line
+### Material Editor
 
-| Tool | Purpose |
-|---|---|
-| `acevo_pb.py` | Generic decode/encode. **Byte-exact, use this to mod.** |
-| `acevo_decode.py` | Fully named JSON, easier to read |
-| `acevo_spline.py` | `.extended_splinedata.bin` (AI racing lines) ⇄ JSON/CSV |
-| `acevo_layout.py` | `.track_layout` (track edges) ⇄ JSON/CSV |
-| `extract_protos.py` | Rebuild the schemas from the game executable |
+More advanced than the EvoForge one (kidding... but technically true 😄).
+A few things it adds on top of a plain property editor:
 
-```bash
-python tools/acevo_pb.py decode <file> -o out.json
-python tools/acevo_pb.py encode out.json -o <file>
-python tools/acevo_pb.py check <folder>          # verify round-trip
+- Colour-coded, alphabetically sorted properties — stop hunting for the field
+  you need.
+- Texture fields turn green the instant a texture is actually linked, so you
+  know at a glance which slots are in use.
+- Save and load presets, to carry a shader's property set across materials.
+- The big one: a hidden opacity field nobody documents. If you've ever fought
+  with opacity on a material, this is the answer.
 
-python tools/acevo_spline.py info <folder>
-python tools/acevo_spline.py decode <file> --csv out.csv
+![Material Editor](docs/screenshot-material-editor.png)
 
-python tools/acevo_layout.py info <folder>
-```
+### Light Color
 
-`acevo_pb.py` keys look like `"3:f32:intensity_when_on"`. Only the number and
-the type are used when encoding, so the name is decorative — a file stays
-editable even where the schema no longer matches its content.
+A one-click light editor:
 
-> **Which decoder?** `acevo_decode.py` is nicer to read but drops fields the
-> current schema does not declare, so re-encoding from it can lose data. For
-> editing, use `acevo_pb.py`.
+- Change every light and emitter colour for a car in one place. One click
+  applies the edit instantly to *every* material generated from Blender, and
+  patches the car's `.actor` file automatically to match — no need to open
+  each file individually.
+- For materials not generated from Blender, colours can still be tuned
+  individually via the Material Editor or Data Editor.
+
+![Light Color](docs/screenshot-light-color.png)
+
+### Settings
+
+The Assetto Corsa EVO install folder and the schema extractor described in
+[First run](#first-run) above.
 
 ## Note on the schemas
 
@@ -122,8 +141,8 @@ Roughly 75 file types are recognised, including `.car`, `.carengine`,
 `.scene` and `.material`.
 
 Not protobuf, handled separately: `.extended_splinedata.bin` and
-`.track_layout` (in-house binary formats, see the tools above), `.data`
-(already JSON), `.fbx`, `.json`, `.csv`.
+`.track_layout` (in-house binary formats), `.data` (already JSON), `.fbx`,
+`.json`, `.csv`.
 
 Files above ~1.5 MB are slow to open in the generic decoder, which builds a
 Python dictionary tree many times the file size. The largest `.scene` files
@@ -156,5 +175,6 @@ machine from your own copy of the game.
 
 ## Backups
 
-The first save of any file copies it to `<name>.<ext>.bak`. Later saves do not
+The first save of any file copies it to `<name>.<ext>.bak` (or `.material.bak` /
+`.actor.bak` for the Material Editor and Light Color tabs). Later saves do not
 overwrite that backup. Back up your content folder anyway before editing.

@@ -1,0 +1,162 @@
+/* Material editor tab styles. Uses the shared :root tokens from
+   UI/static/style.css (loaded separately, see index.html) but otherwise
+   defines its own components (buttons, rows, tree, tabs) - deliberately not
+   shared with the data editor tab's own app.css, so the two stay
+   independently updatable. */
+
+#tab-material-editor { min-height: 0; }
+.me-main { flex: 1; display: flex; min-height: 0; }
+#me-sidebar { min-height: 0; }
+.me-content { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.me-workspace { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+.me-toolbar, .me-blendbar, .me-presetbar, .me-opts {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line);
+  flex: none;
+  flex-wrap: wrap;
+}
+.me-toolbar label, .me-blendbar label, .me-presetbar label { color: var(--muted); font-size: 12.5px; }
+.me-filename { font-weight: 600; margin-right: 8px; }
+.me-hint { color: var(--muted); font-size: 11.5px; max-width: 480px; }
+.me-spacer { flex: 1; }
+
+#tab-material-editor button {
+  font: inherit;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--fg);
+  cursor: pointer;
+}
+#tab-material-editor button:hover:not(:disabled) { border-color: var(--accent); }
+#tab-material-editor button:disabled { opacity: .45; cursor: default; }
+#tab-material-editor button.primary { background: var(--accent); border-color: var(--accent); color: #06121f; font-weight: 600; }
+#tab-material-editor button.primary:disabled { background: var(--panel2); color: var(--fg); border-color: var(--line); }
+
+#tab-material-editor input[type=text],
+#tab-material-editor input[type=search],
+#tab-material-editor input[type=number],
+#tab-material-editor select,
+#tab-material-editor input[list] {
+  font: inherit;
+  padding: 5px 9px;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 12.5px;
+}
+#tab-material-editor input:focus, #tab-material-editor select:focus { outline: none; border-color: var(--accent); }
+
+.me-shader-select { width: 190px; }
+.me-shader-input { width: 190px; }
+.me-search-input { width: 220px; }
+.me-blendmode-select { width: 260px; }
+.me-blend-input { width: 200px; }
+.me-preset-select { width: 200px; }
+
+.me-subtabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 16px 0;
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+.me-subtabs button {
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 6px 12px;
+  color: var(--muted);
+}
+.me-subtabs button.on { color: var(--fg); border-bottom-color: var(--accent); }
+
+.me-body { flex: 1; min-height: 0; overflow: hidden; }
+.me-pane { height: 100%; display: flex; min-height: 0; }
+
+/* -- properties tab: tree + detail panel ------------------------------- */
+.me-tree-col { flex: 3; min-width: 0; display: flex; flex-direction: column; border-right: 1px solid var(--line); }
+.me-tree { flex: 1; overflow: auto; padding: 8px 10px; }
+.me-detail-col { flex: 2; min-width: 280px; max-width: 460px; overflow: auto; padding: 12px 16px; }
+
+details.me-node { margin: 1px 0; }
+details.me-node > summary {
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  list-style: none;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+details.me-node > summary::-webkit-details-marker { display: none; }
+details.me-node > summary:hover { background: var(--panel2); }
+details.me-node > summary::before { content: "▸"; color: var(--muted); font-size: 11px; width: 10px; flex: none; }
+details.me-node[open] > summary::before { content: "▾"; }
+.me-kids { margin-left: 15px; border-left: 1px solid var(--line); padding-left: 9px; }
+.me-count { color: var(--muted); font-size: 11px; }
+
+.me-prow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12.5px;
+}
+.me-prow:hover { background: var(--panel2); }
+.me-prow.sel { background: var(--panel2); box-shadow: inset 2px 0 0 var(--accent); }
+.me-prow.unset { color: #6a6d72; }
+.me-prow .nm { flex: 2; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.me-prow .kind { flex: none; width: 60px; color: var(--muted); font-size: 11px; }
+.me-prow .val { flex: none; width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: Consolas, monospace; font-size: 11px; color: var(--muted); }
+.me-prow .lt { flex: none; width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.me-prow .lt.resolved { color: var(--ok); }
+
+.me-detail-name { font-weight: 600; margin: 0 0 4px; word-break: break-all; }
+.me-detail-tex { color: var(--muted); font-size: 12px; margin: 0 0 10px; word-break: break-all; }
+.me-detail-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.me-comp-input { width: 66px; }
+.me-color-btn { width: 28px; height: 24px; border-radius: 4px; border: 1px solid var(--line); padding: 0; cursor: pointer; }
+.me-alpha-slider { width: 110px; }
+.me-guess-hint { color: var(--warn); font-size: 11.5px; margin: 4px 0; }
+.me-help { color: var(--muted); font-size: 11.5px; margin: 10px 0; }
+
+.me-thumb-wrap {
+  margin-top: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  overflow: hidden;
+}
+.me-thumb-wrap img { display: block; max-width: 100%; }
+.me-thumb-wrap img.me-zoom-fit { max-width: 100%; max-height: 512px; object-fit: contain; }
+
+/* -- textures tab -------------------------------------------------------- */
+.me-tex-list { flex: 1; overflow: auto; padding: 10px 16px; }
+.me-tex-row { display: flex; align-items: center; gap: 10px; padding: 4px 2px; }
+.me-tex-thumb { width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 4px; object-fit: contain; flex: none; }
+.me-tex-name { width: 220px; flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; }
+.me-tex-path { flex: 1; min-width: 0; }
+.me-tex-clear { flex: none; }
+
+/* file browsing (sidebar + "Save As" modal) uses the shared .fb-* component
+   from UI/static/filebrowser.js + style.css - nothing to style here. */
+
+.me-status { padding: 6px 16px; color: var(--muted); font-size: 12px; flex: none; }
+.me-status.ok { color: var(--ok); }
+.me-status.err { color: var(--err); }
+.me-status.warn { color: var(--warn); }
+
+.me-welcome { padding: 40px; max-width: 620px; }
+.me-welcome h2 { margin-top: 0; }

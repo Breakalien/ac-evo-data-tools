@@ -1,0 +1,29 @@
+.st-page { padding: 24px 32px; max-width: 720px; overflow: auto; }
+.st-page h2 { margin-top: 0; }
+.st-section { margin-top: 18px; }
+.st-section h3 { margin-bottom: 4px; }
+.st-section .muted { color: var(--muted); font-size: 12.5px; }
+
+.st-row { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+.st-row input[type=text] {
+  flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--fg); font: inherit; font-size: 12.5px;
+}
+.st-row input:focus { outline: none; border-color: var(--accent); }
+.st-row button {
+  font: inherit; padding: 6px 13px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--panel2); color: var(--fg); cursor: pointer;
+}
+.st-row button:hover { border-color: var(--accent); }
+.st-row button.primary { background: var(--accent); border-color: var(--accent); color: #06121f; font-weight: 600; }
+.st-row button:disabled { opacity: .5; cursor: default; }
+
+.st-status { color: var(--muted); font-size: 12.5px; }
+.st-status.ok { color: var(--ok); }
+.st-status.err { color: var(--err); }
+
+.st-log {
+  margin-top: 10px; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--fg); font-family: Consolas, monospace; font-size: 12px;
+  white-space: pre-wrap; word-break: break-all; max-height: 240px; overflow: auto;
+}

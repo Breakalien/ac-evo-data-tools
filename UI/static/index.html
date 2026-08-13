@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ACE AIO</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="data-editor/app.css">
+<link rel="stylesheet" href="material-editor/app.css">
+<link rel="stylesheet" href="light-color/app.css">
+<link rel="stylesheet" href="settings/app.css">
+</head>
+<body>
+
+<div class="app-header">
+  <h1>ACE <span>AIO</span></h1>
+  <nav class="app-tabs" id="app-tabs">
+    <button type="button" data-app-tab="data-editor" class="on">Data Editor</button>
+    <button type="button" data-app-tab="material-editor">Material Editor</button>
+    <button type="button" data-app-tab="light-color">Light Color</button>
+    <button type="button" data-app-tab="settings">Settings</button>
+  </nav>
+</div>
+
+<div class="app-main">
+
+  <section id="tab-data-editor" class="app-tab-panel">
+    <header>
+      <h1>AC EVO <span>data explorer</span></h1>
+      <input id="search" type="search" placeholder="Search for a file (min. 2 characters)…" autocomplete="off">
+      <span id="status" class="status"></span>
+    </header>
+
+    <main>
+      <aside id="sidebar"></aside>
+
+      <section id="editor">
+        <div id="welcome" class="welcome">
+          <h2>Open a file</h2>
+          <p>Browse the tree on the left, or use the search box.</p>
+          <p class="muted">Supported formats: protobuf (<code>.carledsystem</code>,
+          <code>.carengine</code>, <code>.curve</code>, <code>.aisplinedata</code>…),
+          splinedata (<code>.extended_splinedata.bin</code>) and text files.</p>
+        </div>
+
+        <div id="pane" hidden>
+          <div class="filehead">
+            <div>
+              <h2 id="fname"></h2>
+              <div id="fmeta" class="meta"></div>
+            </div>
+            <div class="actions">
+              <button id="btn-reload" class="ghost">Reload</button>
+              <button id="btn-save" class="primary" disabled>Save</button>
+            </div>
+          </div>
+
+          <nav class="tabs">
+            <button data-tab="form" class="on">Structured view</button>
+            <button data-tab="raw">Raw JSON</button>
+            <div class="findbar">
+              <input id="find" type="search" placeholder="Find in this file…  (Ctrl+F)"
+                     autocomplete="off" spellcheck="false">
+              <button id="find-prev" class="icon" title="Previous match" disabled>↑</button>
+              <button id="find-next" class="icon" title="Next match" disabled>↓</button>
+              <span id="findinfo" class="findinfo"></span>
+            </div>
+          </nav>
+
+          <div id="tab-form" class="tab"></div>
+          <div id="tab-raw" class="tab" hidden>
+            <textarea id="rawjson" spellcheck="false"></textarea>
+            <div class="rawbar">
+              <button id="btn-apply" class="ghost">Apply to form</button>
+              <span id="rawerr" class="err"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </section>
+
+  <section id="tab-material-editor" class="app-tab-panel" hidden>
+   <main class="me-main">
+    <aside id="me-sidebar"></aside>
+    <section id="me-content" class="me-content">
+    <div class="me-toolbar">
+      <button type="button" id="me-btn-save" class="primary" disabled>Save</button>
+      <button type="button" id="me-btn-save-as" disabled>Save as...</button>
+      <span class="me-filename" id="me-filename">No file open</span>
+      <span class="me-spacer"></span>
+      <label>Shader:</label>
+      <select id="me-shader-select" class="me-shader-select" disabled></select>
+      <input type="text" id="me-shader" class="me-shader-input" placeholder="Custom name" disabled hidden>
+      <label>Filter:</label>
+      <input type="search" id="me-search" class="me-search-input" placeholder="Search..." disabled>
+    </div>
+
+    <div class="me-blendbar">
+      <label>Blend mode (hidden field, root):</label>
+      <select id="me-blendmode-select" class="me-blendmode-select" disabled></select>
+      <input type="text" id="me-blendmode" class="me-blend-input" disabled hidden>
+      <span class="me-hint">Only changes the shader label / blend mode value (metadata) -
+        doesn't affect the property list, which comes from the open file.</span>
+      <span class="me-hint">Independent from the 'blendMode' property in the tree - the two must
+        stay consistent for correct rendering. Only '0 - Opaque' has a confirmed mapping (also
+        resets 'blendMode' to 0); check 'blendMode' yourself for other values.</span>
+    </div>
+
+    <div class="me-presetbar">
+      <label>Preset (shader properties):</label>
+      <select id="me-preset-select" class="me-preset-select" disabled></select>
+      <button type="button" id="me-btn-preset-load" disabled>Load</button>
+      <button type="button" id="me-btn-preset-save" disabled>Save as...</button>
+      <label><input type="checkbox" id="me-opt-save-textures"> Also save textures</label>
+      <label><input type="checkbox" id="me-opt-load-values"> Also load values (otherwise: just enable/disable)</label>
+      <label><input type="checkbox" id="me-opt-load-textures"> Also load textures</label>
+      <select id="me-texture-mode">
+        <option value="fill">Fill (only fills empty slots)</option>
+        <option value="raw">Raw (exact copy of the preset)</option>
+      </select>
+      <span class="me-hint" id="me-preset-hint"></span>
+    </div>
+
+    <div id="me-welcome" class="me-welcome">
+      <h2>Material editor</h2>
+      <p class="muted">Open a .material file to get started.</p>
+    </div>
+
+    <div id="me-workspace" class="me-workspace" hidden>
+      <nav class="me-subtabs">
+        <button type="button" data-me-tab="props" class="on">Properties</button>
+        <button type="button" data-me-tab="textures">Textures</button>
+      </nav>
+      <div class="me-body">
+        <div id="me-pane-props" class="me-pane">
+          <div class="me-tree-col">
+            <div class="me-opts">
+              <label><input type="checkbox" id="me-opt-show-unset"> Also show disabled properties</label>
+            </div>
+            <div id="me-tree" class="me-tree"></div>
+          </div>
+          <div class="me-detail-col" id="me-detail"></div>
+        </div>
+        <div id="me-pane-textures" class="me-pane" hidden>
+          <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+            <div class="me-opts">
+              <label><input type="checkbox" id="me-opt-show-unassigned" checked> Also show slots without a texture</label>
+              <label>Preview background:</label>
+              <select id="me-bg-select">
+                <option value="pink">Pink</option>
+                <option value="white">White</option>
+                <option value="black">Black</option>
+              </select>
+            </div>
+            <div id="me-tex-list" class="me-tex-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="me-status" id="me-status"></div>
+    </section>
+   </main>
+  </section>
+
+  <section id="tab-light-color" class="app-tab-panel" hidden>
+    <div class="lc-page">
+      <h2>Light Color</h2>
+      <p class="muted">Pick a car's root folder (the one containing <code>materials/</code> and
+        the <code>.actor</code> file). Batch-edits the light-color properties of every
+        <code>*_FIXED.material</code> under <code>materials/</code>, and the emitter colors
+        declared in the <code>.actor</code> file, all at once - a light-weight alternative to
+        opening each one in the Material Editor / Data Editor. Backup files
+        (<code>.material.bak</code> / <code>.actor.bak</code>) are always skipped, and a fresh
+        <code>.bak</code> is created before any file is first touched.</p>
+
+      <div class="lc-toolbar">
+        <input type="text" id="lc-dir" placeholder="No folder chosen" readonly>
+        <button type="button" id="lc-btn-browse">Browse...</button>
+        <button type="button" id="lc-btn-rescan" disabled>Rescan</button>
+        <span class="lc-status" id="lc-scan-status"></span>
+      </div>
+
+      <div id="lc-body" hidden>
+        <div class="lc-columns">
+          <div class="lc-col">
+            <div class="lc-col-head">
+              <h3>Materials</h3>
+              <details class="lc-files-list">
+                <summary id="lc-files-summary">0 files</summary>
+                <ul id="lc-files-ul"></ul>
+              </details>
+            </div>
+            <div class="lc-groups" id="lc-groups"></div>
+          </div>
+
+          <div class="lc-col" id="lc-emitters-group" hidden>
+            <div class="lc-col-head">
+              <h3>Emitters (.actor)</h3>
+              <p class="muted" id="lc-emitters-hint"></p>
+            </div>
+            <div id="lc-emitters" class="lc-emitters-grid"></div>
+          </div>
+        </div>
+
+        <div class="lc-footer">
+          <button type="button" id="lc-btn-save" class="primary">Apply changes</button>
+          <span class="lc-status" id="lc-save-status"></span>
+        </div>
+        <pre id="lc-log" class="lc-log" hidden></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-settings" class="app-tab-panel" hidden>
+    <div class="st-page">
+      <h2>Settings</h2>
+
+      <div class="st-section">
+        <h3>Assetto Corsa EVO folder</h3>
+        <p class="muted">Used to extract the protobuf schemas (readable field names in the
+          Data Editor tab instead of plain numbers). Redo this after every game update.</p>
+        <div class="st-row">
+          <input type="text" id="st-acevo-dir" placeholder="E.g. C:\Program Files\Steam\steamapps\common\Assetto Corsa EVO">
+          <button type="button" id="st-btn-browse">Browse...</button>
+        </div>
+        <div class="st-row">
+          <button type="button" id="st-btn-extract" class="primary">Extract protos</button>
+          <span class="st-status" id="st-status"></span>
+        </div>
+        <pre id="st-log" class="st-log" hidden></pre>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="shell.js"></script>
+<script src="filebrowser.js"></script>
+<script src="resizable.js"></script>
+<script src="data-editor/app.js"></script>
+<script src="material-editor/app.js"></script>
+<script src="light-color/app.js"></script>
+<script src="settings/app.js"></script>
+</body>
+</html>
