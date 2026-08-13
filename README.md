@@ -4,6 +4,10 @@ Read and edit Assetto Corsa EVO content files, all from one browser-based app:
 a data explorer, a material editor and a light-color batch editor, sharing a
 single interface.
 
+Tutorials will come step by step here: [YouTube channel](https://www.youtube.com/@ALIEN_ONE-mods)
+Updates will be here: [Patreon](https://www.patreon.com/cw/alien_one)
+Everything is free, no membership needed.
+
 The game's data files are serialised Protocol Buffers messages. Better still,
 the complete `.proto` schemas are embedded in the game executable, so fields
 can be shown by their real names rather than by number.
