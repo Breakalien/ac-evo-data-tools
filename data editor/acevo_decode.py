@@ -77,15 +77,16 @@ EXT_MAP = {
     ".rimmesh": "RimMeshData",
     ".scene": "SceneData",
     ".surface3d": "Surface3dData",
-    # suspension type varies by vehicle and axle
-    ".suspension": ["AxleSuspensionData", "MultiLinkSuspensionNewData",
-                    "DoubleWishBoneData", "StrutSuspensionData",
-                    "MultiLinkSuspensionData", "StrutMultiLinkSuspensionData"],
+    # wrapper: basic_data + one geometry sub-message chosen among 8
+    # (dW_data, strut, axle, multi_link_data, trailing_arm_data, ...)
+    ".suspension": "SuspensionGeometryData",
     ".table": "TableData",
     ".texture": "TextureMetadata",
     ".tuningpart": "TuningPart",
     ".turbo": "TurboData",
-    ".tyre": "TyresModelData",
+    # wrapper: name/shortName + tyreData/modelData/thermalData/
+    # pressureData/camberData/speedSensitivity/rollingResistance/...
+    ".tyre": "TyresCompoundData",
     ".tyremesh": "TyreMeshData",
     ".tyretextures": "TyreTexturesData",
     ".visualcarpreset": "VisualCarPresetData",
