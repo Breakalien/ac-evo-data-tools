@@ -6,6 +6,7 @@
 <title>ACE AIO</title>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="data-editor/app.css">
+<link rel="stylesheet" href="field-editor/app.css">
 <link rel="stylesheet" href="material-editor/app.css">
 <link rel="stylesheet" href="light-color/app.css">
 <link rel="stylesheet" href="settings/app.css">
@@ -16,6 +17,7 @@
   <h1>ACE <span>AIO</span></h1>
   <nav class="app-tabs" id="app-tabs">
     <button type="button" data-app-tab="data-editor" class="on">Data Editor</button>
+    <button type="button" data-app-tab="field-editor">Field Editor</button>
     <button type="button" data-app-tab="material-editor">Material Editor</button>
     <button type="button" data-app-tab="light-color">Light Color</button>
     <button type="button" data-app-tab="settings">Settings</button>
@@ -50,6 +52,8 @@
               <div id="fmeta" class="meta"></div>
             </div>
             <div class="actions">
+              <button id="btn-hide-reserved" class="toggle on" aria-pressed="true">Hide reserved</button>
+              <button id="btn-hide-empty" class="toggle" aria-pressed="false">Hide empty</button>
               <button id="btn-reload" class="ghost">Reload</button>
               <button id="btn-save" class="primary" disabled>Save</button>
             </div>
@@ -80,6 +84,78 @@
     </main>
   </section>
 
+  <section id="tab-field-editor" class="app-tab-panel" hidden>
+   <main class="fe-main">
+    <aside id="fe-sidebar"></aside>
+    <section id="fe-content" class="fe-content">
+    <div class="fe-toolbar">
+      <button type="button" id="fe-btn-save" class="primary" disabled>Save</button>
+      <button type="button" id="fe-btn-remove-reserved" disabled>Remove reserved</button>
+      <button type="button" id="fe-btn-remove-empty" disabled>Remove empty</button>
+      <span class="fe-filename" id="fe-filename">No file open</span>
+      <span class="fe-spacer"></span>
+      <span class="fe-message" id="fe-message"></span>
+      <button type="button" id="fe-btn-clean-all" class="danger">Clean all datas...</button>
+    </div>
+
+    <div id="fe-welcome" class="fe-welcome">
+      <h2>Field Editor</h2>
+      <p class="muted">Add or remove fields on a protobuf content file, at any nesting depth -
+        no value editing here, that stays in the Data Editor tab. Open a file to get started;
+        after saving here, use Data Editor's own "Reload" button to see the change there.
+        Message fields are expandable (click to open) - each level gets its own "add field"
+        picker, computed for that level's own type.</p>
+    </div>
+
+    <div id="fe-workspace" hidden>
+      <div id="fe-unsupported" class="fe-unsupported" hidden>
+        Not a recognised protobuf content file - nothing to add or remove here.
+      </div>
+      <div id="fe-fields-wrap" class="fe-fields-wrap" hidden>
+        <div id="fe-fields" class="fe-fields"></div>
+      </div>
+    </div>
+
+    <div class="fe-status" id="fe-status"></div>
+    </section>
+   </main>
+
+   <div id="fe-clean-modal" class="fe-modal-backdrop" hidden>
+    <div class="fe-modal">
+      <div class="fe-modal-head">
+        <strong>Clean all datas</strong>
+        <button type="button" id="fe-clean-close" class="icon-close" aria-label="Close">✕</button>
+      </div>
+      <div class="fe-modal-body">
+        <p class="muted">Recursively strips reserved and/or empty fields from every supported
+          protobuf content file under the chosen folder - not just the one file open above,
+          every matching file in every sub-folder. Text/spline files are skipped (reserved and
+          empty are protobuf concepts only). Pick a car's root folder, or any folder.</p>
+
+        <div class="fe-modal-row">
+          <input type="text" id="fe-clean-root" placeholder="No folder chosen" readonly>
+          <button type="button" id="fe-clean-browse">Browse...</button>
+        </div>
+
+        <label class="fe-modal-check"><input type="checkbox" id="fe-clean-opt-empty" checked> Clean empty</label>
+        <label class="fe-modal-check"><input type="checkbox" id="fe-clean-opt-reserved" checked> Clean reserved</label>
+        <label class="fe-modal-check fe-modal-check-backup">
+          <input type="checkbox" id="fe-clean-opt-backup"> Create backup
+        </label>
+
+        <div class="fe-modal-actions">
+          <button type="button" id="fe-clean-btn-clean" class="danger">Clean</button>
+          <button type="button" id="fe-clean-btn-restore">Restore from backup</button>
+          <button type="button" id="fe-clean-btn-delete-backups">Delete backups</button>
+        </div>
+
+        <div id="fe-clean-status" class="fe-status"></div>
+        <pre id="fe-clean-log" class="fe-clean-log" hidden></pre>
+      </div>
+    </div>
+   </div>
+  </section>
+
   <section id="tab-material-editor" class="app-tab-panel" hidden>
    <main class="me-main">
     <aside id="me-sidebar"></aside>
@@ -105,6 +181,11 @@
       <span class="me-hint">Independent from the 'blendMode' property in the tree - the two must
         stay consistent for correct rendering. Only '0 - Opaque' has a confirmed mapping (also
         resets 'blendMode' to 0); check 'blendMode' yourself for other values.</span>
+    </div>
+
+    <div class="me-companionbar" id="me-companionbar" hidden>
+      <label>Fields for this blend mode:</label>
+      <div id="me-companion-fields" class="me-companion-fields"></div>
     </div>
 
     <div class="me-presetbar">
@@ -153,6 +234,7 @@
                 <option value="black">Black</option>
               </select>
             </div>
+            <div id="me-tex-warning" class="me-tex-warning" hidden></div>
             <div id="me-tex-list" class="me-tex-list"></div>
           </div>
         </div>
@@ -240,6 +322,7 @@
 <script src="filebrowser.js"></script>
 <script src="resizable.js"></script>
 <script src="data-editor/app.js"></script>
+<script src="field-editor/app.js"></script>
 <script src="material-editor/app.js"></script>
 <script src="light-color/app.js"></script>
 <script src="settings/app.js"></script>

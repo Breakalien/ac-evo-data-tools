@@ -16,6 +16,8 @@ const el = (tag, cls, txt) => {
 let current = null;   // open file (response from /api/data/open)
 let dirty = false;
 let splinePatch = {}; // index -> modified row
+let hideReserved = true;   // fields the .proto marks as reserved (deleted from the schema)
+let hideEmpty = false;     // message-typed fields with no content ("{empty}")
 
 function status(msg, cls) {
   const s = $('#status');
@@ -116,6 +118,7 @@ function render() {
   if (current.kind === 'proto') {
     form.appendChild(buildTree(current.data, current.data));
     $('#rawjson').value = JSON.stringify(current.data, null, 2);
+    applyFieldFilters();
   } else if (current.kind === 'spline') {
     buildSpline(form);
     $('#rawjson').value = JSON.stringify(
@@ -259,13 +262,17 @@ function buildTree(obj, rootRef) {
   }
   Object.keys(obj).forEach((k) => {
     const v = obj[k];
+    // "?reserved" marks a field number the .proto has deleted - see labelFor().
+    // Stamped on whatever node this key ends up as (row or details), whichever
+    // branch below builds it, so the Hide reserved/Hide empty toggles can find
+    // it later without re-parsing the tree - see applyFieldFilters().
+    const isReserved = parseKey(k).name === '?reserved';
+    let node;
     if (Array.isArray(v)) {
       const isLeafArr = v.every(isLeaf);
       if (isLeafArr && parseKey(k).type === 'packed_varint' && enumChoices(k)) {
-        box.appendChild(packedEnumNode(obj, k, v));
-        return;
-      }
-      if (isLeafArr) {
+        node = packedEnumNode(obj, k, v);
+      } else if (isLeafArr) {
         const labs = (current.index_labels || {})[parseKey(k).name];
         const d = el('details', 'node');
         const s = el('summary');
@@ -277,7 +284,7 @@ function buildTree(obj, rootRef) {
         v.forEach((item, i) => kids.appendChild(
           leafRow(k, v, i, labs && labs[i] ? ' [' + i + '] ' + labs[i] : ' [' + i + ']')));
         d.appendChild(kids);
-        box.appendChild(d);
+        node = d;
       } else {
         const d = el('details', 'node');
         const s = el('summary');
@@ -296,10 +303,10 @@ function buildTree(obj, rootRef) {
           kids.appendChild(dd);
         });
         d.appendChild(kids);
-        box.appendChild(d);
+        node = d;
       }
     } else if (isLeaf(v)) {
-      box.appendChild(leafRow(k, obj, k, ''));
+      node = leafRow(k, obj, k, '');
     } else {
       const d = el('details', 'node');
       const s = el('summary');
@@ -310,11 +317,42 @@ function buildTree(obj, rootRef) {
       const kids = el('div', 'kids');
       kids.appendChild(buildTree(v, rootRef));
       d.appendChild(kids);
-      box.appendChild(d);
+      node = d;
+      if (n === 0) node.dataset.empty = '1';
     }
+    if (isReserved) node.dataset.reserved = '1';
+    box.appendChild(node);
   });
   return box;
 }
+
+/* ---------------------------------------------------------------- reserved/empty filters */
+
+function applyFieldFilters() {
+  const form = $('#tab-form');
+  form.querySelectorAll('.row[data-reserved], details.node[data-reserved], details.node[data-empty]')
+    .forEach((n) => {
+      n.hidden = (hideReserved && n.dataset.reserved === '1') ||
+                 (hideEmpty && n.dataset.empty === '1');
+    });
+}
+
+function setHideReserved(v) {
+  hideReserved = v;
+  $('#btn-hide-reserved').classList.toggle('on', v);
+  $('#btn-hide-reserved').setAttribute('aria-pressed', String(v));
+  applyFieldFilters();
+}
+
+function setHideEmpty(v) {
+  hideEmpty = v;
+  $('#btn-hide-empty').classList.toggle('on', v);
+  $('#btn-hide-empty').setAttribute('aria-pressed', String(v));
+  applyFieldFilters();
+}
+
+$('#btn-hide-reserved').onclick = () => setHideReserved(!hideReserved);
+$('#btn-hide-empty').onclick = () => setHideEmpty(!hideEmpty);
 
 function leafRow(key, container, prop, suffix) {
   const row = el('div', 'row');

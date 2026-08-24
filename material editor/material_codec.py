@@ -16,11 +16,9 @@ valide par un test d'aller-retour bit-a-bit (decode -> encode -> bytes identique
           blend du shader - modifier l'une sans l'autre laisse le materiau
           dans un etat incoherent (pertes de couleur/lumiere localisees).
           Absent du fichier quand le materiau est opaque (convention
-          protobuf standard : valeur par defaut 0 omise). Seules les valeurs
-          0 (absent -> Opaque) et 2 (AlphaBlend) sont confirmees par des
-          fichiers reels a ce jour (voir champ_cache_blendmode.pdf) ; 1
-          (AlphaToCoverage) et 3+ (AlphaTest/autres) sont des hypotheses
-          d'apres l'ordre de declaration du SDK, non verifiees.
+          protobuf standard : valeur par defaut 0 omise). Valeurs confirmees :
+          0 = Opaque (absent), 1 = AlphaToCoverage, 2 = AlphaBlend,
+          4 = AlphaTest, 5 = Smoke (voir champ_cache_blendmode.pdf).
       field4 (repeated msg)    -> Property
           field1 (string)      = nom
           field2 (msg, Value)  = TOUJOURS present (eventuellement vide)

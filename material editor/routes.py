@@ -112,6 +112,22 @@ def _resolved_texture_names(mf: mc.MaterialFile, index: ProjectIndex | None) -> 
     return {t.name for t in mf.textures if t.path and index.find_image_asset(t.path)}
 
 
+def _missing_texture_slots(shader: str, existing_names) -> list[mc.TextureSlot]:
+    """TextureSlot placeholders (path=None) for every slot name the shader's
+    texture_slots list knows about that isn't already in `existing_names` -
+    mirrors _missing_schema_properties below, so the Textures tab can show
+    the shader's full valid slot set (including empty ones, via "Also show
+    slots without a texture") instead of only whatever slots this particular
+    file's raw data happens to declare.
+
+    Safe to add: an empty TextureSlot entry (no path) encodes to the same
+    "declared but unassigned" shape real game-authored files already use
+    all over the place - see material_codec.py's _encode_texture."""
+    slots = logic.load_texture_slots(shader) if shader else []
+    existing = set(existing_names)
+    return [mc.TextureSlot(name=n, path=None) for n in slots if n not in existing]
+
+
 def _missing_schema_properties(shader: str, existing_names) -> list[mc.Property]:
     """Property objects for every name the shader's schema knows about that
     isn't already in `existing_names` - as KIND_UNSET placeholders, so they
@@ -142,6 +158,7 @@ def api_constants(q):
         "shaders": logic.KNOWN_SHADERS,
         "blend_mode_labels": logic.BLEND_MODE_KNOWN_LABELS,
         "blend_mode_opaque": logic.BLEND_MODE_OPAQUE,
+        "blend_mode_companion_fields": logic.BLEND_MODE_COMPANION_FIELDS,
         "kind_labels": logic.KIND_LABELS,
     }
 
@@ -157,14 +174,23 @@ def api_shader_properties(body):
     entry for yet (ready to append to the client's property list - see
     _missing_schema_properties). Without this, switching to a shader whose
     schema includes a property the file never declared would leave that
-    property permanently invisible, even with "show disabled" on."""
+    property permanently invisible, even with "show disabled" on.
+
+    Also returns the new shader's valid texture_slots list (for marking
+    populated-but-invalid slots red client-side) and any slot it knows about
+    that the file doesn't have an entry for yet (see _missing_texture_slots) -
+    same idea as missing_properties, for the Textures tab."""
     shader = (body.get("shader") or "").strip()
     existing_names = [d["name"] for d in body.get("existing", [])]
     texture_names = set(body.get("texture_names") or [])
+    existing_tex_names = [d["name"] for d in body.get("existing_textures", [])]
     missing = _missing_schema_properties(shader, existing_names)
+    missing_tex = _missing_texture_slots(shader, existing_tex_names)
     return {
         "schema": logic.load_schema(shader) if shader else {},
         "missing_properties": [_prop_to_json(pr, texture_names, set()) for pr in missing],
+        "texture_slots": logic.load_texture_slots(shader) if shader else [],
+        "missing_texture_slots": [_tex_to_json(t) for t in missing_tex],
     }
 
 
@@ -178,9 +204,12 @@ def api_open(q):
         raise ValueError("cannot decode this .material file: %s" % exc)
 
     index = _get_index(str(p))
-    texture_names = {t.name for t in mf.textures}
     resolved_names = _resolved_texture_names(mf, index)
     raw_items = [_raw_to_json(it) for it in mf.items if isinstance(it, mc.RawField)]
+
+    textures = list(mf.textures)
+    textures += _missing_texture_slots(mf.shader_name, (t.name for t in textures))
+    texture_names = {t.name for t in textures}
 
     properties = list(mf.properties)
     properties += _missing_schema_properties(mf.shader_name, (p.name for p in properties))
@@ -191,7 +220,8 @@ def api_open(q):
         "shader_name": mf.shader_name,
         "blend_mode": mf.blend_mode,
         "properties": [_prop_to_json(pr, texture_names, resolved_names) for pr in properties],
-        "textures": [_tex_to_json(t) for t in mf.textures],
+        "textures": [_tex_to_json(t) for t in textures],
+        "texture_slots": logic.load_texture_slots(mf.shader_name) if mf.shader_name else [],
         "raw_items": raw_items,
         "presets": logic.list_presets(mf.shader_name) if mf.shader_name else [],
         "schema": logic.load_schema(mf.shader_name) if mf.shader_name else {},
@@ -199,6 +229,7 @@ def api_open(q):
         "category_order": logic.CATEGORY_ORDER,
         "blend_mode_labels": logic.BLEND_MODE_KNOWN_LABELS,
         "blend_mode_opaque": logic.BLEND_MODE_OPAQUE,
+        "blend_mode_companion_fields": logic.BLEND_MODE_COMPANION_FIELDS,
         "kind_labels": logic.KIND_LABELS,
     }
 

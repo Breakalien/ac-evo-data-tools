@@ -37,6 +37,7 @@ else:
 # from "<folder>/static/" - see ui_server.register_static below.
 MODULES = {
     "data-editor": ROOT / "data editor",
+    "field-editor": ROOT / "field editor",
     "material-editor": ROOT / "material editor",
     "light-color": ROOT / "light color",
     "settings": ROOT / "settings",

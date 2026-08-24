@@ -1,0 +1,15 @@
+[
+ "AmbientOcclusionMap",
+ "AnisotropyMap",
+ "EmissiveMap",
+ "MetalnessMap",
+ "NormalMap",
+ "ReflectanceMap",
+ "RoughnessMap",
+ "txAO",
+ "txDiffuse",
+ "txHeight",
+ "txMetalness",
+ "txNormal",
+ "txRoughness"
+]

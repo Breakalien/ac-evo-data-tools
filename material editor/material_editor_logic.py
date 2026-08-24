@@ -14,6 +14,7 @@ import material_codec as mc
 
 PRESETS_DIR = Path(__file__).parent / "presets"
 SCHEMA_DIR = Path(__file__).parent / "schema"
+TEXTURE_SLOTS_DIR = Path(__file__).parent / "texture_slots"
 
 # Root "blend_mode" field (protobuf field 2, see material_codec.py's module
 # docstring and champ_cache_blendmode.pdf) - independent of the named
@@ -25,13 +26,38 @@ SCHEMA_DIR = Path(__file__).parent / "schema"
 # UberBiplanarMaterial file and 1.0 on VehicleGlass files) - there is no
 # single universal mapping beyond Opaque, so only Opaque is auto-synced by
 # the editor; every other value is shown for visibility/manual editing only.
+# (That auto-sync caveat is about the blendMode PROPERTY pairing, not about
+# the names below - the blend_mode -> shader name mapping itself is confirmed.)
 BLEND_MODE_OPAQUE = 0
 BLEND_MODE_KNOWN_LABELS = {
     0: "0 - Opaque",
-    1: "1 - seen on foliage/glass/fabric (no confirmed fixed mapping)",
-    2: "2 - seen on glass/windows (no confirmed fixed mapping)",
-    4: "4 - seen on grass/subsurface (no confirmed fixed mapping)",
-    5: "5 - seen on smoke (Smoke)",
+    1: "1 - AlphaToCoverage",
+    2: "2 - AlphaBlend",
+    4: "4 - AlphaTest",
+    5: "5 - Smoke",
+}
+
+# Root-level fields outside the documented 1/2/4/5 layout (see
+# material_codec.py's module docstring) that only make sense together with a
+# specific hidden blend_mode value - e.g. blend_mode 1 (AlphaToCoverage)
+# carries field 9 (opacity scale) and field 10 (cutoff) right after it in
+# real files. Always round-tripped generically as a RawField regardless of
+# this registry (see material_codec.py), but the UI uses this to expose
+# them as friendly, editable fields instead of raw hex when their blend
+# mode is the one currently selected.
+#
+# Field 7 is a known reserved/padding field seen alongside these - it is
+# deliberately left out here (never surfaced, always passed through as an
+# opaque RawField) per explicit instruction, since its purpose is unknown.
+#
+# Only blend_mode 1 is populated so far - add more (field_no, name, comment
+# on the confirming file) here as they get confirmed against real content,
+# same evidence bar as BLEND_MODE_KNOWN_LABELS above.
+BLEND_MODE_COMPANION_FIELDS = {
+    1: [
+        {"field_no": 9, "name": "alphaToCoverageOpacityScale"},
+        {"field_no": 10, "name": "alphaToCoverageCutoff"},
+    ],
 }
 
 KIND_LABELS = {
@@ -381,3 +407,20 @@ def guess_kind(shader: str, prop_name: str) -> tuple[int, bool]:
     if prop_name in schema:
         return schema[prop_name], True
     return mc.KIND_SCALAR, False
+
+
+# -- Slots de texture valides par shader -------------------------------------
+_texture_slots_cache: dict[str, list[str]] = {}
+
+
+def load_texture_slots(shader: str) -> list[str]:
+    """Noms de slots de texture connus pour `shader` (extrait du jeu, voir
+    I:\\CLAUDE\\UACEC2\\core\\material\\texture_slots). Vide si le shader n'a
+    jamais ete scanne - dans ce cas rien n'est filtre/marque invalide, comme
+    pour load_schema() ci-dessus."""
+    if shader in _texture_slots_cache:
+        return _texture_slots_cache[shader]
+    path = TEXTURE_SLOTS_DIR / f"{_safe_filename(shader)}.json"
+    data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    _texture_slots_cache[shader] = data
+    return data

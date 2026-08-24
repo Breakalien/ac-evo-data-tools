@@ -57,7 +57,43 @@ async function loadConstants() {
 
 function setDirty(v) {
   dirty = v;
-  $('#me-btn-save').disabled = !v || !state;
+  updateSaveGate();
+}
+
+/* ---------------------------------------------------------------- texture-slot validity */
+// "material editor/texture_slots/<Shader>.json" (see material_editor_logic.py)
+// lists every texture slot name that shader actually declares in real game
+// content - state.texture_slots mirrors that for the currently open file's
+// shader. A slot in the file but NOT in that list (e.g. left over from a
+// previous shader) is never auto-cleared - it's flagged red and blocks
+// saving until emptied, same "never silently drop data" rule as everywhere
+// else in this editor.
+function textureSlotsKnown() {
+  return !!(state && state.texture_slots && state.texture_slots.length > 0);
+}
+function isInvalidTextureSlot(t) {
+  if (!textureSlotsKnown()) return false;
+  return !state.texture_slots.includes(t.name);
+}
+function invalidPopulatedTextures() {
+  if (!state) return [];
+  return state.textures.filter((t) => t.path && isInvalidTextureSlot(t));
+}
+
+function updateSaveGate() {
+  const invalid = state ? invalidPopulatedTextures() : [];
+  const warn = $('#me-tex-warning');
+  if (invalid.length) {
+    warn.hidden = false;
+    warn.textContent = 'Save blocked: ' + plural(invalid.length, 'texture slot') +
+      " not valid for shader '" + (state.shader_name || '') + "' still has a texture assigned - " +
+      'clear it below (or switch back to the right shader) before saving: ' +
+      invalid.map((t) => t.name).join(', ');
+  } else {
+    warn.hidden = true;
+    warn.textContent = '';
+  }
+  $('#me-btn-save').disabled = !dirty || !state || invalid.length > 0;
 }
 
 function searchTokens(raw) {
@@ -122,10 +158,12 @@ async function openMaterial(path) {
   fillBlendModeSelect(data.blend_mode_labels);
   syncShaderControl(data.shader_name);
   refreshBlendModeDisplay();
+  renderCompanionFields();
   refreshPresetSelect();
   renderTree();
   renderTextures();
   renderDetail();
+  updateSaveGate();
   status('');
 }
 
@@ -215,7 +253,72 @@ function commitBlendMode() {
     status('Blend mode (hidden field) -> ' + value + ". No known fixed mapping: check/adjust 'blendMode' yourself if needed.");
   }
   refreshBlendModeDisplay();
+  renderCompanionFields();
   setDirty(true);
+}
+
+/* ---------------------------------------------------------------- blend-mode companion fields */
+// Root-level fields that only make sense together with a specific blend_mode
+// (e.g. blend_mode 1 / AlphaToCoverage carries field 9 + field 10 right
+// after it - see material_editor_logic.BLEND_MODE_COMPANION_FIELDS). They
+// round-trip generically as raw_items entries either way; this just gives
+// the ones for the CURRENT blend_mode a friendly, editable row instead of
+// staying invisible raw hex.
+function companionFieldDefs() {
+  if (!state || !constants) return [];
+  const map = constants.blend_mode_companion_fields || {};
+  return map[String(state.blend_mode)] || [];
+}
+function findCompanionRaw(fieldNo) {
+  return state.raw_items.find((r) => r.field_no === fieldNo && r.wiretype === 'fixed32');
+}
+
+function renderCompanionFields() {
+  const box = $('#me-companion-fields');
+  box.textContent = '';
+  const defs = companionFieldDefs();
+  $('#me-companionbar').hidden = !state || defs.length === 0;
+  if (!state) return;
+
+  defs.forEach((def) => {
+    const raw = findCompanionRaw(def.field_no);
+    const row = el('div', 'me-companion-row');
+    row.appendChild(el('span', 'me-companion-name', def.name + ' (field ' + def.field_no + ')'));
+
+    if (raw) {
+      const inp = el('input', 'me-companion-input');
+      inp.type = 'text';
+      inp.value = fmtNum(raw.value);
+      inp.onchange = () => {
+        const text = inp.value.trim().replace(',', '.');
+        const v = parseFloat(text);
+        if (Number.isNaN(v)) { inp.style.borderColor = 'var(--err)'; return; }
+        inp.style.borderColor = '';
+        raw.value = v;
+        setDirty(true);
+      };
+      row.appendChild(inp);
+
+      const disableBtn = el('button', null, 'Disable');
+      disableBtn.type = 'button';
+      disableBtn.onclick = () => {
+        state.raw_items = state.raw_items.filter((r) => r !== raw);
+        setDirty(true);
+        renderCompanionFields();
+      };
+      row.appendChild(disableBtn);
+    } else {
+      const enableBtn = el('button', null, 'Enable');
+      enableBtn.type = 'button';
+      enableBtn.onclick = () => {
+        state.raw_items.push({ field_no: def.field_no, wiretype: 'fixed32', value: 0.0 });
+        setDirty(true);
+        renderCompanionFields();
+      };
+      row.appendChild(enableBtn);
+    }
+    box.appendChild(row);
+  });
 }
 
 /* ---------------------------------------------------------------- shader / presets */
@@ -260,6 +363,7 @@ async function onShaderChange() {
         shader: v,
         existing: state.properties.map((p) => ({ name: p.name })),
         texture_names: state.textures.map((t) => t.name),
+        existing_textures: state.textures.map((t) => ({ name: t.name })),
       }),
     });
     state.schema = data.schema;
@@ -270,14 +374,27 @@ async function onShaderChange() {
     if (data.missing_properties && data.missing_properties.length) {
       state.properties.push(...data.missing_properties);
     }
-  } catch (e) { /* keep previous schema/properties, tree still re-renders unfiltered below */ }
+    // Same idea for texture slots: state.texture_slots is the new shader's
+    // full valid list (used by isInvalidTextureSlot below), and any slot it
+    // knows about that the file doesn't have an entry for yet is added as an
+    // empty placeholder so it shows up under "Also show slots without a
+    // texture" instead of just being absent.
+    state.texture_slots = data.texture_slots || [];
+    if (data.missing_texture_slots && data.missing_texture_slots.length) {
+      state.textures.push(...data.missing_texture_slots);
+    }
+  } catch (e) { /* keep previous schema/properties/texture_slots, tree still re-renders unfiltered below */ }
 
   // The properties that DO already exist never change with the shader label
   // - they're whatever is stored in the file. What DOES change is which of
   // them are actually known/relevant for this shader (from "material
   // editor/schema/<Shader>.json"): the tree re-renders to show only those
-  // (plus any newly-added ones from above).
+  // (plus any newly-added ones from above). Existing texture slots aren't
+  // touched either - a slot no longer valid for this shader stays in the
+  // list and gets flagged (see renderTextures/updateSaveGate), never dropped.
   renderTree();
+  renderTextures();
+  updateSaveGate();
   if (selectedProp) renderDetail();
 
   status(schemaIsKnown()
@@ -334,6 +451,7 @@ async function loadPreset(confirmMismatch) {
   state.blend_mode = res.blend_mode;
   selectedProp = null;
   refreshBlendModeDisplay();
+  renderCompanionFields();
   renderTree();
   renderTextures();
   renderDetail();
@@ -681,7 +799,8 @@ function toggleSelected() {
 /* ---------------------------------------------------------------- textures tab */
 
 function buildTexRow(t) {
-  const row = el('div', 'me-tex-row');
+  const invalid = isInvalidTextureSlot(t);
+  const row = el('div', 'me-tex-row' + (invalid && t.path ? ' invalid' : ''));
   const img = el('img', 'me-tex-thumb');
   img.style.background = PREVIEW_BG_COLORS[previewBg];
   img.alt = t.name;
@@ -698,13 +817,24 @@ function buildTexRow(t) {
   input.onchange = () => {
     t.path = input.value.trim() || null;
     setDirty(true);
+    // Whether this row is invalid (and its badge/thumbnail) can change with
+    // the path - re-render rather than patch in place, so nothing goes stale.
+    renderTextures();
   };
   row.appendChild(input);
 
   const clearBtn = el('button', 'me-tex-clear', 'Clear');
   clearBtn.type = 'button';
-  clearBtn.onclick = () => { input.value = ''; t.path = null; setDirty(true); };
+  clearBtn.onclick = () => {
+    t.path = null;
+    setDirty(true);
+    renderTextures();
+  };
   row.appendChild(clearBtn);
+
+  if (invalid && t.path) {
+    row.appendChild(el('span', 'me-tex-badge', 'not in ' + (state.shader_name || 'this shader')));
+  }
 
   return row;
 }

@@ -10,7 +10,7 @@
 .me-content { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .me-workspace { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 
-.me-toolbar, .me-blendbar, .me-presetbar, .me-opts {
+.me-toolbar, .me-blendbar, .me-companionbar, .me-presetbar, .me-opts {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -19,7 +19,11 @@
   flex: none;
   flex-wrap: wrap;
 }
-.me-toolbar label, .me-blendbar label, .me-presetbar label { color: var(--muted); font-size: 12.5px; }
+.me-toolbar label, .me-blendbar label, .me-companionbar label, .me-presetbar label { color: var(--muted); font-size: 12.5px; }
+.me-companion-fields { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.me-companion-row { display: flex; align-items: center; gap: 6px; }
+.me-companion-name { color: var(--muted); font-size: 12.5px; }
+.me-companion-input { width: 90px; }
 .me-filename { font-weight: 600; margin-right: 8px; }
 .me-hint { color: var(--muted); font-size: 11.5px; max-width: 480px; }
 .me-spacer { flex: 1; }
@@ -149,6 +153,19 @@ details.me-node[open] > summary::before { content: "▾"; }
 .me-tex-name { width: 220px; flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; }
 .me-tex-path { flex: 1; min-width: 0; }
 .me-tex-clear { flex: none; }
+.me-tex-row.invalid .me-tex-name { color: var(--err); font-weight: 600; }
+.me-tex-row.invalid .me-tex-path { border-color: var(--err); }
+.me-tex-badge { color: var(--err); font-size: 11px; flex: none; white-space: nowrap; }
+
+.me-tex-warning {
+  margin: 8px 16px 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--err);
+  background: color-mix(in srgb, var(--err) 15%, transparent);
+  color: var(--err);
+  font-size: 12.5px;
+}
 
 /* file browsing (sidebar + "Save As" modal) uses the shared .fb-* component
    from UI/static/filebrowser.js + style.css - nothing to style here. */

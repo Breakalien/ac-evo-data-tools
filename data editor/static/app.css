@@ -97,6 +97,7 @@ button:hover:not(:disabled) { border-color: var(--accent); }
 button:disabled { opacity: .45; cursor: default; }
 button.primary { background: var(--accent); border-color: var(--accent); color: #06121f; font-weight: 600; }
 button.primary:disabled { background: var(--panel2); color: var(--fg); border-color: var(--line); }
+button.toggle.on { background: var(--accent); border-color: var(--accent); color: #06121f; font-weight: 600; }
 
 .tabs { display: flex; gap: 4px; padding: 8px 16px 0; border-bottom: 1px solid var(--line); align-items: center; }
 .findbar { margin-left: auto; display: flex; align-items: center; gap: 4px; padding-bottom: 6px; }
